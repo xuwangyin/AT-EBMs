@@ -1,8 +1,16 @@
 # Learning Energy-Based Models With Adversarial Training
+Paper link https://arxiv.org/abs/2012.06568
 
 ## Dependencies
-
-See `requirements.txt`
+```
+torch==1.7.1
+torchvision==0.8.2
+numpy==1.21.5
+scipy==1.7.3
+Pillow==9.1.0
+scikit_learn==1.0.2
+tensorflow==1.15 # for FID evaluation
+```
 
 ## Preparing Data
 
@@ -18,7 +26,7 @@ CelebAHQ256  imagenet256  AFHQ-png ...
 
 ### Target distribution dataset ( $p_\textrm{data}$ )
 
-- **CelebA-HQ 256** Download [data512x512.zip](https://drive.google.com/drive/folders/11Vz0fqHS2rXDb5pprgTjpD7S2BAJhi1P) (the 512x512 version of CelebA-HQ dataset) and unzip it to `./prepare_datasets/downloads/celebahq_files/`. Run the following command to create the dataset: `$ sh ./prepare_datasets/create_celebahq256.sh`
+- **CelebA-HQ 256** Download [data512x512.zip](https://drive.google.com/drive/folders/11Vz0fqHS2rXDb5pprgTjpD7S2BAJhi1P) and unzip it to `./prepare_datasets/downloads/celebahq_files/`. Run the following command to create the dataset: `$ sh ./prepare_datasets/create_celebahq256.sh`
 
 - **AFHQ-CAT 256** Run the command `sh ./prepare_datasets/create_afhqcat256.sh`
 
@@ -94,17 +102,16 @@ Download [tiny_images.bin](http://www.archive.org/download/80-million-tiny-image
 ## Reproduce Experimental Results
 
 ### Generation and FID evaluation
-CIFAR-10: `python generate.py --dataset cifar10 --savedir eval_fid/cifar10-gen; python fid.py eval_fid/cifar10-gen data/fid_stats_cifar10_train.npz`
-CelebA-HQ 256: `python generate.py --dataset celebahq256 --savedir eval_fid/celebahq256-gen; python fid.py eval_fid/celebahq256-gen datasets/CelebAHQ256/train/data`
-AFHQ-CAT 256: `python generate.py --dataset afhqcat256 --savedir eval_fid/afhqcat256-gen; python fid.py eval_fid/afhqcat256-gen datasets/AFHQ-png/afhq256/train/cat/data/`
-LSUN-Church 256: `python generate.py --dataset church256 --savedir eval_fid/church256-gen; python fid.py eval_fid/church256-gen datasets/Church256/train/data/`
+- CIFAR-10: `python generate.py --dataset cifar10 --savedir eval_fid/cifar10-eval; python fid.py eval_fid/cifar10-eval data/fid_stats_cifar10_train.npz`
+- CelebA-HQ 256: `python generate.py --dataset celebahq256 --savedir eval_fid/celebahq256-eval; python fid.py eval_fid/celebahq256-eval datasets/CelebAHQ256/train/data`
+- AFHQ-CAT 256: `python generate.py --dataset afhqcat256 --savedir eval_fid/afhqcat256-eval; python fid.py eval_fid/afhqcat256-eval datasets/AFHQ-png/afhq256/train/cat/data/`
+- LSUN-Church 256: `python generate.py --dataset church256 --savedir eval_fid/church256-eval; python fid.py eval_fid/church256-eval datasets/Church256/train/data/`
 
 ### Worst-case out-of-distribution detection
-
-CIFAR-10: `python eval_ood_cifar10.py --dataset CIFAR100` (change the --dataset parameter to obtain results on other OOD datasets)
-CelebA-HQ 256: `python eval_ood_dataset256.py --task celebahq256`
-AFHQ-CAT 256: `python eval_ood_dataset256.py --task afhqcat256`
-LSUN-Church 256: `python eval_ood_dataset256.py --task church256`
+- CIFAR-10: `python eval_ood_cifar10.py --dataset CIFAR100` (`--dataset` can be `SVHN`, `CIFAR100`, `imagenet32`, and `Uniform noise`)
+- CelebA-HQ 256: `python eval_ood_dataset256.py --task celebahq256`
+- AFHQ-CAT 256: `python eval_ood_dataset256.py --task afhqcat256`
+- LSUN-Church 256: `python eval_ood_dataset256.py --task church256`
 
 
 ### 2D experiment
