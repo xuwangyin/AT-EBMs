@@ -53,8 +53,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # Load model
-    model = resnet50() if args.dataset == 'cifar10' else Discriminator(
-        num_classes=1000)
+    model = resnet50() if args.dataset == 'cifar10' else Discriminator(num_classes=1000)
     model = nn.DataParallel(model)
     model = model.to(device)
     if args.model:

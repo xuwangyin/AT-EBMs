@@ -1,0 +1,3 @@
+[submodule "starganv2"]
+	path = starganv2
+	url = git@github.com:xuwangyin/stargan-v2.git
