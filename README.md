@@ -1,8 +1,15 @@
 # Learning Energy-Based Models With Adversarial Training
 
 ## Dependencies
-
-See `requirements.txt`
+```
+torch==1.7.1
+torchvision==0.8.2
+numpy==1.21.5
+scipy==1.7.3
+Pillow==9.1.0
+scikit_learn==1.0.2
+tensorflow==1.15 # for FID evaluation
+```
 
 ## Preparing Data
 
