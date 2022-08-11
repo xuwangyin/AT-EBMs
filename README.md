@@ -16,7 +16,7 @@ $ ls ./datasets
 CelebAHQ256  imagenet256  AFHQ-png ...
 ```
 
-### p_0 dataset
+### Out-of-distribution datasets ($p_0$ dataset)
 
 **The 80 million tiny images dataset**
 
@@ -34,7 +34,7 @@ n01440764  n01739381  n01978287  n02092002 ...
 $ ls datasets/imagenet256/val
 n01440764  n01739381  n01978287  n02092002 .. 
 ```
-### p_data dataset
+### Target distribution datasets ($p_\textrm{data}$ dataset)
 
 **CelebA-HQ 256**
 
@@ -53,7 +53,7 @@ Run the command `sh ./prepare_datasets/create_afhqcat256.sh`
 
 ## Training Models
 
-CIFAR-10 (generation): 
+CIFAR-10 (generation)
 ```bash
 #!/bin/bash
 args='--indist_steps 5 --r1reg 0.01 --optimizer adam --lr 0.0005
@@ -63,7 +63,7 @@ args='--indist_steps 5 --r1reg 0.01 --optimizer adam --lr 0.0005
 python -u train.py $args --max_steps 25 --startstep 0 --logfid
 ```
 
-CelebA-HQ 256:
+CelebA-HQ 256
 ```bash
 #!/bin/bash
 args='--indist_aug --indist_steps 5
@@ -74,7 +74,7 @@ args='--indist_aug --indist_steps 5
 python -u train.py $args --max_steps 40 --startstep 0 --logfid
 ```
 
-AFHQ-CAT 256:
+AFHQ-CAT 256
 ```bash
 #!/bin/bash
 args='--indist_aug --indist_steps 5
@@ -85,7 +85,7 @@ args='--indist_aug --indist_steps 5
 python -u train.py $args --max_steps 25 --startstep 0 --logfid
 ```
 
-LSUN-Church 256:
+LSUN-Church 256
 ```bash
 #!/bin/bash
 args='--indist_aug --indist_steps 5
