@@ -56,7 +56,7 @@ parser.add_argument('--r1reg', type=float, default=0,
                     help='Weight for R1 regularization')
 parser.add_argument('--pretrain', action='store_true',
                     help='Use pretrained model for the D model')
-parser.add_argument('--r1reg', type=float, default=0,
+parser.add_argument('--r1reg', type=float, default=0)
 parser.add_argument('--batch_size', type=int, default=32)
 parser.add_argument('--epochs_per_step', type=int, required=True,
                     help='number of epochs for training the D model')
