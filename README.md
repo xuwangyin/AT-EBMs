@@ -16,48 +16,79 @@ $ ls ./datasets
 CelebAHQ256  imagenet256  AFHQ-png ...
 ```
 
-### p_0 dataset
+### Target distribution dataset ( $p_\textrm{data}$ )
 
-**The 80 million tiny images dataset**
+- **CelebA-HQ 256** Download [data512x512.zip](https://drive.google.com/drive/folders/11Vz0fqHS2rXDb5pprgTjpD7S2BAJhi1P) (the 512x512 version of CelebA-HQ dataset) and unzip it to `./prepare_datasets/downloads/celebahq_files/`. Run the following command to create the dataset: `$ sh ./prepare_datasets/create_celebahq256.sh`
 
+- **AFHQ-CAT 256** Run the command `sh ./prepare_datasets/create_afhqcat256.sh`
+
+- **LSUN Church 256** 
+  1. Download https://github.com/fyu/lsun to `prepare_datasets/downloads`
+  2. Inside `prepare_datasets/downloads/lsun` run `python download.py -c church_outdoor; unzip church_outdoor_train_lmdb.zip` 
+  3. Inside `prepare_datasets` run `python extract_png.py --root downloads/lsun --category church_outdoor --split train --savedir ../datasets/Church256`
+
+### Out-of-distribution dataset ( $p_0$ )
+
+- **The 80 million tiny images dataset (required for the CIFAR-10 task)**
 Download [tiny_images.bin](http://www.archive.org/download/80-million-tiny-images-2-of-2/tiny_images.bin) to `./datasets`.
 
-**ImageNet**
-
-Download ImageNet and organize it as follows (images do not need to be resized to 256x256):
-
-```
-$ ls ./datasets/imagenet256
-ILSVRC2012_devkit_t12.tar.gz train val
-$ ls ./datasets/imagenet256/train
-n01440764  n01739381  n01978287  n02092002 ...
-$ ls datasets/imagenet256/val
-n01440764  n01739381  n01978287  n02092002 .. 
-```
-### p_data dataset
-
-**CelebA-HQ 256**
-
-Download [data512x512.zip](https://drive.google.com/drive/folders/11Vz0fqHS2rXDb5pprgTjpD7S2BAJhi1P) (the 512x512 version of CelebA-HQ dataset) and unzip it to `./prepare_datasets/downloads/celebahq_files/`. Run the following command to create the dataset: `$ sh ./prepare_datasets/create_celebahq256.sh`
-
-**AFHQ-CAT 256**
-
-Run the command `sh ./prepare_datasets/create_afhqcat256.sh`
-
-**LSUN Church 256**
-1. Download https://github.com/fyu/lsun to `prepare_datasets/downloads`
-2. Inside `prepare_datasets/downloads/lsun` run `python download.py -c church_outdoor; unzip church_outdoor_train_lmdb.zip` 
-3. Inside `prepare_datasets` run `python extract_png.py --root downloads/lsun --category church_outdoor --split train --savedir ../datasets/Church256`
+- **ImageNet (required for the 256x256 tasks)**
+  Download ImageNet and organize it as follows (images do not need to be resized to 256x256):
+  ```
+  $ ls ./datasets/imagenet256
+  ILSVRC2012_devkit_t12.tar.gz train val
+  $ ls ./datasets/imagenet256/train
+  n01440764  n01739381  n01978287  n02092002 ...
+  $ ls datasets/imagenet256/val
+  n01440764  n01739381  n01978287  n02092002 .. 
+  ```
 
 
 
 ## Training Models
 
-CIFAR-10 (generation): `sh training_scripts/train_cifar10_generation.sh`
-CIFAR-10 (OOD detection): `sh training_scripts/train_cifar10_ood_detection.sh`
-CelebA-HQ 256: `sh training_scripts/train_celebahq256.sh`
-AFHQ-CAT 256: `sh training_scripts/train_afhqcat256.sh`
-LSUN-Church 256: `sh training_scripts/train_church256.sh`
+- CIFAR-10 (generation)
+  ```bash
+  #!/bin/bash
+  args='--indist_steps 5 --r1reg 0.01 --optimizer adam --lr 0.0005
+  --batch_size 32 --step_size 0.1 --epochs 5
+  --dataset cifar10 --datadir ./datasets'
+
+  python -u train.py $args --max_steps 25 --startstep 0 --logfid
+  ```
+
+- CelebA-HQ 256
+  ```bash
+  #!/bin/bash
+  args='--indist_aug --indist_steps 5
+  --r1reg 30 --optimizer adam --lr 0.00005
+  --batch_size 40 --step_size 2.0 --epochs 5 --pretrain
+  --dataset celebahq256 --datadir ./datasets'
+
+  python -u train.py $args --max_steps 40 --startstep 0 --logfid
+  ```
+
+- AFHQ-CAT 256
+  ```bash
+  #!/bin/bash
+  args='--indist_aug --indist_steps 5
+  --r1reg 100 --optimizer adam --lr 0.00005
+  --batch_size 40 --step_size 2.0 --epochs 50 --pretrain
+  --dataset afhq256 --datadir ./datasets/'
+
+  python -u train.py $args --max_steps 25 --startstep 0 --logfid
+  ```
+
+- LSUN-Church 256
+  ```bash
+  #!/bin/bash
+  args='--indist_aug --indist_steps 5
+  --r1reg 100 --optimizer adam --lr 0.00005
+  --batch_size 40 --step_size 2.0 --epochs 50 --pretrain
+  --dataset afhq256 --datadir ./datasets/'
+
+  python -u train.py $args --max_steps 25 --startstep 0 --logfid
+  ```
 
 
 ## Reproduce Experimental Results
