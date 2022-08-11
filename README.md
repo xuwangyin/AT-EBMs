@@ -102,16 +102,30 @@ Download [tiny_images.bin](http://www.archive.org/download/80-million-tiny-image
 ## Reproduce Experimental Results
 
 ### Generation and FID evaluation
-- CIFAR-10: `python generate.py --dataset cifar10 --savedir eval_fid/cifar10-eval; python fid.py eval_fid/cifar10-eval data/fid_stats_cifar10_train.npz`
-- CelebA-HQ 256: `python generate.py --dataset celebahq256 --savedir eval_fid/celebahq256-eval; python fid.py eval_fid/celebahq256-eval datasets/CelebAHQ256/train/data`
-- AFHQ-CAT 256: `python generate.py --dataset afhqcat256 --savedir eval_fid/afhqcat256-eval; python fid.py eval_fid/afhqcat256-eval datasets/AFHQ-png/afhq256/train/cat/data/`
-- LSUN-Church 256: `python generate.py --dataset church256 --savedir eval_fid/church256-eval; python fid.py eval_fid/church256-eval datasets/Church256/train/data/`
+CIFAR-10: 
+> python generate.py --dataset cifar10 --savedir eval_fid/cifar10-eval; python fid.py eval_fid/cifar10-eval data/fid_stats_cifar10_train.npz
+
+CelebA-HQ 256: 
+> python generate.py --dataset celebahq256 --savedir eval_fid/celebahq256-eval; python fid.py eval_fid/celebahq256-eval datasets/CelebAHQ256/train/data
+
+AFHQ-CAT 256: 
+> python generate.py --dataset afhqcat256 --savedir eval_fid/afhqcat256-eval; python fid.py eval_fid/afhqcat256-eval datasets/AFHQ-png/afhq256/train/cat/data/
+
+LSUN-Church 256: 
+> python generate.py --dataset church256 --savedir eval_fid/church256-eval; python fid.py eval_fid/church256-eval datasets/Church256/train/data/
 
 ### Worst-case out-of-distribution detection
-- CIFAR-10: `python eval_ood_cifar10.py --dataset CIFAR100` (`--dataset` can be `SVHN`, `CIFAR100`, `imagenet32`, and `Uniform noise`)
-- CelebA-HQ 256: `python eval_ood_dataset256.py --task celebahq256`
-- AFHQ-CAT 256: `python eval_ood_dataset256.py --task afhqcat256`
-- LSUN-Church 256: `python eval_ood_dataset256.py --task church256`
+CIFAR-10: 
+> python eval_ood_cifar10.py --dataset CIFAR100 (`--dataset` can be `SVHN`, `CIFAR100`, `imagenet32`, and `Uniform noise`)
+
+CelebA-HQ 256: 
+> python eval_ood_dataset256.py --task celebahq256
+
+AFHQ-CAT 256:
+> python eval_ood_dataset256.py --task afhqcat256
+
+LSUN-Church 256: 
+> python eval_ood_dataset256.py --task church256
 
 
 ### 2D experiment
