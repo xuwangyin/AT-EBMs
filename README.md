@@ -25,7 +25,7 @@ CelebAHQ256  imagenet256  AFHQ-png ...
 
 ### Target distribution dataset ( $p_\textrm{data}$ )
 
-- **CelebA-HQ 256** Download [data512x512.zip](https://drive.google.com/drive/folders/11Vz0fqHS2rXDb5pprgTjpD7S2BAJhi1P) (the 512x512 version of CelebA-HQ dataset) and unzip it to `./prepare_datasets/downloads/celebahq_files/`. Run the following command to create the dataset: `$ sh ./prepare_datasets/create_celebahq256.sh`
+- **CelebA-HQ 256** Download [data512x512.zip](https://drive.google.com/drive/folders/11Vz0fqHS2rXDb5pprgTjpD7S2BAJhi1P) and unzip it to `./prepare_datasets/downloads/celebahq_files/`. Run the following command to create the dataset: `$ sh ./prepare_datasets/create_celebahq256.sh`
 
 - **AFHQ-CAT 256** Run the command `sh ./prepare_datasets/create_afhqcat256.sh`
 
