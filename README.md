@@ -55,48 +55,17 @@ Download [tiny_images.bin](http://www.archive.org/download/80-million-tiny-image
 
 ## Training Models
 
-- CIFAR-10 (generation)
-  ```bash
-  #!/bin/bash
-  args='--indist_steps 5 --r1reg 0.01 --optimizer adam --lr 0.0005
-  --batch_size 32 --step_size 0.1 --epochs 5
-  --dataset cifar10 --datadir ./datasets'
+CIFAR-10 (generation)
+> python -u train.py --indist_steps 5 --r1reg 0.01 --optimizer adam --lr 0.0005 --batch_size 32 --step_size 0.1 --epochs 5 --dataset cifar10 --datadir ./datasets' --max_steps 25 --startstep 0 --logfid
 
-  python -u train.py $args --max_steps 25 --startstep 0 --logfid
-  ```
+CelebA-HQ 256
+> python -u train.py --indist_aug --indist_steps 5 --r1reg 30 --optimizer adam --lr 0.00005 --batch_size 40 --step_size 2.0 --epochs 5 --pretrain --dataset celebahq256 --datadir ./datasets --max_steps 40 --startstep 0 --logfid
 
-- CelebA-HQ 256
-  ```bash
-  #!/bin/bash
-  args='--indist_aug --indist_steps 5
-  --r1reg 30 --optimizer adam --lr 0.00005
-  --batch_size 40 --step_size 2.0 --epochs 5 --pretrain
-  --dataset celebahq256 --datadir ./datasets'
+AFHQ-CAT 256
+> python -u train.py --indist_aug --indist_steps 5 --r1reg 100 --optimizer adam --lr 0.00005 --batch_size 40 --step_size 2.0 --epochs 50 --pretrain --dataset afhq256 --datadir ./datasets/' --max_steps 25 --startstep 0 --logfid
 
-  python -u train.py $args --max_steps 40 --startstep 0 --logfid
-  ```
-
-- AFHQ-CAT 256
-  ```bash
-  #!/bin/bash
-  args='--indist_aug --indist_steps 5
-  --r1reg 100 --optimizer adam --lr 0.00005
-  --batch_size 40 --step_size 2.0 --epochs 50 --pretrain
-  --dataset afhq256 --datadir ./datasets/'
-
-  python -u train.py $args --max_steps 25 --startstep 0 --logfid
-  ```
-
-- LSUN-Church 256
-  ```bash
-  #!/bin/bash
-  args='--indist_aug --indist_steps 5
-  --r1reg 100 --optimizer adam --lr 0.00005
-  --batch_size 40 --step_size 2.0 --epochs 50 --pretrain
-  --dataset afhq256 --datadir ./datasets/'
-
-  python -u train.py $args --max_steps 25 --startstep 0 --logfid
-  ```
+LSUN-Church 256
+> python -u train.py --indist_aug --indist_steps 5 --r1reg 100 --optimizer adam --lr 0.00005 --batch_size 40 --step_size 2.0 --epochs 50 --pretrain --dataset afhq256 --datadir ./datasets --max_steps 25 --startstep 0 --logfid
 
 
 ## Reproduce Experimental Results
