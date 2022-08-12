@@ -7,3 +7,6 @@
 [submodule "pytorch-fid"]
 	path = pytorch-fid
 	url = https://github.com/mseitzer/pytorch-fid.git
+[submodule "InNOutRobustness"]
+	path = InNOutRobustness
+	url = https://github.com/M4xim4l/InNOutRobustness.git

@@ -1,5 +1,6 @@
 import argparse
 import os
+import sys
 from datetime import datetime
 
 import numpy as np
@@ -21,12 +22,14 @@ from dataset import get_church256_dataset
 from dataset import get_imagenet256_dataset
 from dataset import get_afhq256_dataset
 from pgd_attack import perturb, forward
-from utils import save_model
-from utils import set_train
+from misc import save_model
+from misc import set_train
 from GOOD_tiny_utils.tinyimages_80mn_loader import TinyImages
 from collections import deque
-from utils import r1_reg
+from misc import r1_reg
 from eval_utils import compute_fid
+
+sys.path.append('./InNOutRobustness')
 import InNOutRobustness.utils.datasets as dl
 
 parser = argparse.ArgumentParser()
