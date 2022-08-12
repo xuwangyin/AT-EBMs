@@ -10,3 +10,6 @@
 [submodule "InNOutRobustness"]
 	path = InNOutRobustness
 	url = https://github.com/M4xim4l/InNOutRobustness.git
+[submodule "GOOD"]
+	path = GOOD
+	url = https://gitlab.com/Bitterwolf/GOOD.git
