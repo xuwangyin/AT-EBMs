@@ -24,7 +24,7 @@ from dataset import get_afhq256_dataset
 from pgd_attack import perturb, forward
 from misc import save_model
 from misc import set_train
-from GOOD_tiny_utils.tinyimages_80mn_loader import TinyImages
+from GOOD.tiny_utils.tinyimages_80mn_loader import TinyImages
 from collections import deque
 from misc import r1_reg
 from eval_utils import compute_fid
@@ -59,7 +59,6 @@ parser.add_argument('--r1reg', type=float, default=0,
                     help='Weight for R1 regularization')
 parser.add_argument('--pretrain', action='store_true',
                     help='Use pretrained model for the D model')
-parser.add_argument('--r1reg', type=float, default=0)
 parser.add_argument('--batch_size', type=int, default=32)
 parser.add_argument('--epochs_per_step', type=int, required=True,
                     help='number of epochs for training the D model')
