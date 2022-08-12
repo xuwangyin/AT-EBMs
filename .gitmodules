@@ -13,3 +13,6 @@
 [submodule "GOOD"]
 	path = GOOD
 	url = https://gitlab.com/Bitterwolf/GOOD.git
+[submodule "auto-attack"]
+	path = auto-attack
+	url = git@github.com:xuwangyin/auto-attack.git
