@@ -8,7 +8,8 @@ import torchvision
 import torchvision.datasets
 import torchvision.transforms as transforms
 from dataset import *
-from pgd_attack import perturb, perturb_random_restarts, perturb_sequence
+# from pgd_attack import perturb, perturb_random_restarts, perturb_sequence
+from pgd_attack import perturb
 from sklearn.metrics import roc_curve, auc as auc_fn
 from torchvision.utils import make_grid
 from misc import set_eval, set_train
