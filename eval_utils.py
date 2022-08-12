@@ -11,7 +11,7 @@ from dataset import *
 from pgd_attack import perturb, perturb_random_restarts, perturb_sequence
 from sklearn.metrics import roc_curve, auc as auc_fn
 from torchvision.utils import make_grid
-from utils import set_eval, set_train
+from misc import set_eval, set_train
 from tqdm import tqdm
 from pathlib import Path
 
