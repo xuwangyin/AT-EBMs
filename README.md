@@ -85,16 +85,16 @@ LSUN-Church 256:
 
 ### Worst-case out-of-distribution detection
 CIFAR-10: 
-> python eval_ood_cifar10.py --dataset CIFAR100 (`--dataset` can be `SVHN`, `CIFAR100`, `imagenet32`, and `Uniform noise`)
+> python eval_ood.py --task cifar10
 
 CelebA-HQ 256: 
-> python eval_ood_dataset256.py --task celebahq256
+> python eval_ood.py --task celebahq256
 
 AFHQ-CAT 256:
-> python eval_ood_dataset256.py --task afhqcat256
+> python eval_ood.py --task afhqcat256
 
 LSUN-Church 256: 
-> python eval_ood_dataset256.py --task church256
+> python eval_ood.py --task church256
 
 
 ### 2D experiment

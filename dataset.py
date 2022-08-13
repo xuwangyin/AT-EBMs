@@ -32,6 +32,12 @@ class TinyImages(Dataset):
     def __len__(self):
         return self.data.shape[0]
 
+def get_imagenet32_val_dataset(datadir):
+    return torchvision.datasets.ImageFolder(
+        os.path.join(datadir, 'imagenet256/val'),
+        transforms.Compose([transforms.Resize([32,32]), transforms.ToTensor()]))
+
+
 
 def get_imagenet256_dataset(datadir, interpolation=2, transform=None):
     return torchvision.datasets.ImageFolder(
@@ -40,6 +46,12 @@ def get_imagenet256_dataset(datadir, interpolation=2, transform=None):
             [transforms.RandomResizedCrop(256, interpolation=interpolation),
              transforms.RandomHorizontalFlip(),
              transforms.ToTensor()]))
+
+
+def get_imagenet256_val_dataset(datadir):
+    return torchvision.datasets.ImageFolder(
+        os.path.join(datadir, 'imagenet256/val'),
+        transforms.Compose([transforms.Resize((256, 256)), transforms.ToTensor()]))
 
 
 def get_celebahq256_dataset(datadir, transform=transforms.Compose(
