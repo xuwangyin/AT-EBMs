@@ -215,128 +215,50 @@ def ood_adv(model, indist_data, ood_data, epsilon, steps, step_size):
     roc_auc(indist_data, ood_data_adv, model)
 
 
-dataset_names = ['Gaussian noise', 'Uniform noise', 'CIFAR10',
-                 'ImageNet', 'Bedroom', 'SVHN', 'CelebAHQ',
-                 'CIFAR100', 'TinyImages', 'Church', 'ImageNetDog',
-                 'lsun_classroom32', 'imagenet32']
-
-
-def load_dataset(dataset_name, data_size=None, num_samples=None,
-                 smoothed_noise=False):
+def load_dataset(dataset, num_samples=None, size=None, datadir='./datasets'):
     """Return a dataset given the dataset name."""
-    assert dataset_name in dataset_names
-    datadir = './datasets/'
-    if dataset_name in ['Gaussian noise', 'Uniform noise']:
-        assert data_size is not None
-        assert num_samples is not None
-    if dataset_name in ['CIFAR10', 'SVHN', 'CIFAR100', 'lsun_classroom32',
-                        'imagenet32', 'TinyImages']:
-        data_size = 32
+    assert size in [32, 256]
     transform = transforms.Compose(
-        [transforms.Resize(data_size), transforms.ToTensor()])
+        [transforms.Resize([size, size]), transforms.ToTensor()])
 
-    if smoothed_noise:
-        assert dataset_name in ['CIFAR10', 'SVHN', 'CIFAR100']
-        sys.path.append('./certified-certain-uncertainty/utils')
-        import preproc as pre
-        transform = transforms.Compose([transforms.ToTensor(),
-                                        pre.PermutationNoise(),
-                                        pre.GaussianFilter(),
-                                        pre.ContrastRescaling()])
-    if dataset_name == 'Gaussian noise':
+    if dataset == 'Gaussian noise':
+        assert num_samples is not None
         torch.manual_seed(0)
-        gaussian_noise = torch.randn([num_samples, 3, data_size, data_size])
+        gaussian_noise = torch.randn([num_samples, 3, size, size])
         gaussian_noise -= gaussian_noise.min()
         gaussian_noise /= gaussian_noise.max()
         return torch.utils.data.TensorDataset(gaussian_noise)
-    elif dataset_name == 'Uniform noise':
+    elif dataset == 'uniform-noise':
+        assert num_samples is not None
         torch.manual_seed(0)
-        uniform_noise = torch.rand([num_samples, 3, data_size, data_size])
+        uniform_noise = torch.rand([num_samples, 3, size, size])
         return torch.utils.data.TensorDataset(uniform_noise)
-    elif dataset_name == 'CIFAR10':
+    elif dataset == 'cifar10':
         return torchvision.datasets.CIFAR10(datadir, train=False,
                                             transform=transform, download=True)
-    elif dataset_name == 'SVHN':
+    elif dataset == 'svhn':
         return torchvision.datasets.SVHN(datadir, split='test',
                                          transform=transform, download=True)
-    elif dataset_name == 'CIFAR100':
+    elif dataset == 'cifar100':
         return torchvision.datasets.CIFAR100(datadir, train=False,
                                              transform=transform, download=True)
-    elif dataset_name == 'lsun_classroom32':
-        return get_classroom32_val_dataset(datadir)
-    elif dataset_name == 'imagenet32':
+    elif dataset == 'imagenet32':
+        assert size == 32
         return get_imagenet32_val_dataset(datadir)
-    elif dataset_name == 'TinyImages':
+    elif dataset == 'TinyImages':
+        assert size == 32
         return TinyImages(datafile=os.path.join(datadir, 'tinyimages1000k.npy'),
                           transform=transform)
-
-
-def load_dataset224(dataset_name, num_samples=None):
-    """Return a dataset given the dataset name."""
-    datadir = './datasets/'
-    transform = transforms.Compose(
-        [transforms.Resize(224), transforms.ToTensor()])
-
-    if dataset_name == 'Uniform noise':
-        torch.manual_seed(0)
-        uniform_noise = torch.rand([num_samples, 3, 224, 224])
-        return torch.utils.data.TensorDataset(uniform_noise)
-    elif dataset_name == 'CIFAR10':
-        return torchvision.datasets.CIFAR10(datadir, train=False,
-                                            transform=transform, download=True)
-    elif dataset_name == 'SVHN':
-        return torchvision.datasets.SVHN(datadir, split='test',
-                                         transform=transform, download=True)
-    elif dataset_name == 'lsun_classroom32':
-        return get_classroom32_val_dataset(datadir)
-    elif dataset_name == 'RestrictedImageNetVal':
-        return get_restrictedimagenet_val_dataset(datadir)
-    elif dataset_name == 'RestrictedImageNetOtherVal':
-        return get_restrictedimagenet_others_val_dataset(datadir)
-    elif dataset_name == 'flowers':
-        transform = transforms.Compose(
-            [transforms.RandomResizedCrop(224),
-             transforms.RandomHorizontalFlip(), transforms.ToTensor()])
-        return torchvision.datasets.ImageFolder(
-            os.path.join(datadir, '102flowers'), transform)
-
-
-def load_dataset256(dataset_name, num_samples=None):
-    """Return a dataset given the dataset name."""
-    datadir = './datasets/'
-    transform = transforms.Compose(
-        [transforms.Resize(256), transforms.ToTensor()])
-
-    if dataset_name == 'Uniform noise':
-        torch.manual_seed(0)
-        uniform_noise = torch.rand([num_samples, 3, 256, 256])
-        return torch.utils.data.TensorDataset(uniform_noise)
-    elif dataset_name == 'afhq-cat':
+    elif dataset == 'afhqcat256':
         return get_afhq256_dataset(datadir, subset='cat')
-    elif dataset_name == 'celebahq':
+    elif dataset == 'celebahq256':
         return get_celebahq256_dataset(datadir)
-    elif dataset_name == 'church':
+    elif dataset == 'church256':
         return get_church256_dataset(datadir)
-    elif dataset_name == 'CIFAR10':
-        return torchvision.datasets.CIFAR10(datadir, train=False,
-                                            transform=transform, download=True)
-    elif dataset_name == 'SVHN':
-        return torchvision.datasets.SVHN(datadir, split='test',
-                                         transform=transform, download=True)
-    elif dataset_name == 'lsun_classroom32':
-        return get_classroom32_val_dataset(datadir)
-    elif dataset_name == 'RestrictedImageNetVal':
-        return get_restrictedimagenet_val_dataset(datadir)
-    elif dataset_name == 'ImageNetVal':
+    elif dataset == 'imagenetval':
         return get_imagenet256_val_dataset(datadir)
-    elif dataset_name == 'RestrictedImageNetOtherVal':
-        return get_restrictedimagenet_others_val_dataset(datadir)
-    elif dataset_name == 'flowers':
-        transform = transforms.Compose(
-            [transforms.RandomResizedCrop(256),
-             transforms.RandomHorizontalFlip(), transforms.ToTensor()])
-        return torchvision.datasets.ImageFolder(
-            os.path.join(datadir, '102flowers'), transform)
+    else:
+        raise ValueError('Dataset not supported')
 
 
 def load_data(dataset, test_samples):
@@ -361,7 +283,7 @@ def load_data(dataset, test_samples):
         return data
 
 
-def eval_ood_detection_noperturb(model, indist_dataset, ood_dataset, data_size,
+def eval_ood_detection_clean(model, indist_dataset, ood_dataset, size,
                                  eval_samples, which_logit='first',
                                  indist_samples=-1):
     """
@@ -373,8 +295,8 @@ def eval_ood_detection_noperturb(model, indist_dataset, ood_dataset, data_size,
     :param eval_samples: number of samples used for this evaluation
     :return: AUC score on in-distribution data and OOD data
     """
-    assert data_size in [32, 224, 256]
-    data_shape = torch.Size([3, data_size, data_size])
+    assert size in [32, 256]
+    data_shape = torch.Size([3, size, size])
 
     indist_data = load_data(indist_dataset, indist_samples)
     ood_data = load_data(ood_dataset, eval_samples)
@@ -386,8 +308,8 @@ def eval_ood_detection_noperturb(model, indist_dataset, ood_dataset, data_size,
         return auc_score
 
 
-def eval_ood_detection_autoattack(model, indist_dataset, ood_dataset, data_size,
-                                  eval_samples, verbose=False,
+def eval_ood_detection_autoattack(model, indist_dataset, ood_dataset, size,
+                                  eval_samples,
                                   which_logit='first', n_restarts=5,
                                   indist_samples=-1):
     """
@@ -401,8 +323,8 @@ def eval_ood_detection_autoattack(model, indist_dataset, ood_dataset, data_size,
     :return: AUC score on in-distribution data and perturbed OOD data
     """
     assert which_logit in ['first', 'max']
-    assert data_size in [32, 224, 256]
-    data_shape = torch.Size([3, data_size, data_size])
+    assert size in [32, 256]
+    data_shape = torch.Size([3, size, size])
 
     indist_data = load_data(indist_dataset, indist_samples)
     ood_data = load_data(ood_dataset, eval_samples)
@@ -410,42 +332,15 @@ def eval_ood_detection_autoattack(model, indist_dataset, ood_dataset, data_size,
     assert indist_data.shape[1:] == data_shape
     assert ood_data.shape[1:] == data_shape
 
-    if data_size == 32:
-        # autoattack_model = AutoAttackModel(model, which_logit)
-        # adversary = AutoAttack(autoattack_model, norm='L2', eps=1.0,
-        # verbose=verbose)
+    if size == 32:
         modelW = Cifar10Wrapper(model, which_logit)
-        adversary = AutoAttack(modelW, norm='L2', eps=1.0, verbose=verbose)
-    elif data_size == 224:
-        # autoattack_model = AutoAttackModel224(model, which_logit)
-        # adversary = AutoAttack(autoattack_model, norm='L2', eps=7.0,
-        # verbose=verbose)
+        adversary = AutoAttack(modelW, norm='L2', eps=1.0, verbose=False)
+    elif size == 256:
         modelW = ImageNetWrapper(model, which_logit)
-        adversary = AutoAttack(modelW, norm='L2', eps=7.0, verbose=verbose)
-    elif data_size == 256:
-        # autoattack_model = AutoAttackModel224(model, which_logit)
-        # adversary = AutoAttack(autoattack_model, norm='L2', eps=7.0,
-        # verbose=verbose)
-        modelW = ImageNetWrapper(model, which_logit)
-        adversary = AutoAttack(modelW, norm='L2', eps=7.0, verbose=verbose)
-        # adversary = AutoAttack(modelW, norm='L2', eps=100.0, verbose=verbose)
-    # adversary.attacks_to_run = ['apgd-ce', 'fab', 'square']
-    # adversary.apgd.n_restarts = 5
-    # adversary.fab.n_restarts = 5
-    # adversary.square.n_queries = 5000
-    # adversary.apgd.n_iter = 100
-    # adversary.fab.n_iter = 100
-
-    # adversary.apgd.loss = {'first': 'first_logit', 'max': 'max_logit'}[
-    # which_logit]
-    # adversary.fab.loss = {'first': 'first_logit', 'max': 'max_logit'}[
-    # which_logit]
-    # adversary.square.loss = {'first': 'first_logit', 'max': 'max_logit'}[
-    # which_logit]
+        adversary = AutoAttack(modelW, norm='L2', eps=7.0, verbose=False)
 
     adversary.attacks_to_run = ['apgd-ce']
-    adversary.apgd.loss = {'first': 'first_logit', 'max': 'max_logit'}[
-        which_logit]
+    adversary.apgd.loss = {'first': 'first_logit', 'max': 'max_logit'}[which_logit]
     adversary.apgd.n_restarts = n_restarts
     adversary.apgd.n_iter = 100
 
@@ -456,12 +351,9 @@ def eval_ood_detection_autoattack(model, indist_dataset, ood_dataset, data_size,
     # adversary.attacks_to_run = ['square']
     # adversary.square.n_queries = 5000
     with torch.no_grad():
-        bs = {32: 200, 224: 100, 256: 100}[data_size]
+        bs = {32: 200, 256: 100}[size]
         ood_data_adv = adversary.run_standard_evaluation(ood_data,
                                                          ood_data_labels, bs=bs)
-        # print(forward(model, indist_data[:10], 'cifar10', 'first'))
-        # print(forward(model, ood_data[:10], 'cifar10', 'first'))
-        # print(forward(model, ood_data_adv[:10], 'cifar10', 'first'))
         auc_score = roc_auc(indist_data, ood_data_adv, model, which_logit)
         return auc_score
 
