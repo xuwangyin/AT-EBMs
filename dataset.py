@@ -10,7 +10,7 @@ import random
 
 
 class TinyImages(Dataset):
-    def __init__(self, datafile, transform, n_samples=-1):
+    def __init__(self, datafile, transform=None, n_samples=-1):
         super(TinyImages, self).__init__()
 
         self.data = np.load(datafile)

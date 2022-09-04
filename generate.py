@@ -11,6 +11,7 @@ import torchvision.models as models
 import torchvision.transforms as transforms
 from starganv2.core.model import Discriminator
 from dataset import get_imagenet256_dataset
+from eval_utils import generate
 from tqdm import tqdm
 import torch.nn as nn
 import torch
@@ -43,17 +44,17 @@ device = 'cuda:0'
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', type=str,
-                        choices=['cifar10', 'celebahq256', 'afhqcat256', 'church256'], 
-                        required=True)
+                        choices=['cifar10', 'celebahq256', 'afhqcat256',
+                                 'church256'], required=True)
     parser.add_argument('--samples', type=int, default=50000)
     parser.add_argument('--savedir', type=str, required=True)
-    parser.add_argument('--seed', type=int, default=None)
     parser.add_argument('--batch_size', type=int, default=None)
     parser.add_argument('--model', type=str, default=None)
     args = parser.parse_args()
 
     # Load model
-    model = resnet50() if args.dataset == 'cifar10' else Discriminator(num_classes=1000)
+    model = resnet50() if args.dataset == 'cifar10' else \
+        Discriminator(num_classes=1000)
     model = nn.DataParallel(model)
     model = model.to(device)
     if args.model:
@@ -62,34 +63,8 @@ if __name__ == '__main__':
         model.load_state_dict(torch.load(model_files[args.dataset]))
     set_eval(model)
 
-    # Load seed images
-    if args.dataset == 'cifar10':
-        ood_dataset = load_dataset('TinyImages')
-    else:
-        ood_dataset = get_imagenet256_dataset(datadir='./datasets')
-
-    batch_size = 5000 if args.dataset == 'cifar10' else 100
-    if args.batch_size is not None:
-        batch_size = args.batch_size
-    assert args.samples % batch_size == 0
-    max_iters = args.samples // batch_size
-    pathlib.Path(args.savedir).mkdir(parents=True, exist_ok=True)
-    # Make reproducible
-    if args.seed is not None:
-        torch.manual_seed(args.seed)
-    else:
-        torch.manual_seed(0)
-    loader = torch.utils.data.DataLoader(ood_dataset, batch_size=batch_size,
-                                         shuffle=True)
     attack_config = attack_configs[args.dataset]
-    print(attack_config)
-    for i, data in tqdm(zip(range(max_iters), loader), total=max_iters):
-        # Discard labels
-        seed_imgs = data[0] if isinstance(data, list) else data
-        adv = compute_adv(seed_imgs, model, attack_config)
+    datasize = 32 if args.dataset == 'cifar10' else 256
+    generate(datasize, args.samples, args.savedir, attack_config, model)
 
-        # Save generated images
-        for j in range(adv.shape[0]):
-            img = transforms.ToPILImage()(adv[j])
-            img.save(os.path.join(args.savedir, f'{i * batch_size + j:06d}.png'))
 
