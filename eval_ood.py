@@ -40,29 +40,28 @@ def run_ood_eval(model, task):
     image_size = 32 if task == 'cifar10' else 256
     indist_dataset = load_dataset(task, size=image_size)
     ood_datasets = {
-            'cifar10': ['svhn', 'cifar100', 'imagenet32', 'uniform-noise'],
-            'celebahq256': ['afhqcat256', 'church256', 'cifar10', 'uniform-noise',
-                            'imagenetval', 'svhn'],
-            'afhqcat256': ['celebahq256', 'church256', 'cifar10', 'uniform-noise',
-                           'imagenetval', 'svhn'],
-            'church256': ['celebahq256', 'afhqcat256', 'cifar10', 'uniform-noise',
-                          'imagenetval', 'svhn']}[task]
+        'cifar10': ['svhn', 'cifar100', 'imagenet32', 'uniform-noise'],
+        'celebahq256': ['afhqcat256', 'church256', 'cifar10', 'uniform-noise',
+                        'imagenetval', 'svhn'],
+        'afhqcat256': ['celebahq256', 'church256', 'cifar10', 'uniform-noise',
+                       'imagenetval', 'svhn'],
+        'church256': ['celebahq256', 'afhqcat256', 'cifar10', 'uniform-noise',
+                      'imagenetval', 'svhn']}[task]
 
     for ood_dataset in ood_datasets:
-        dataset = load_dataset(ood_dataset, num_samples=args.eval_samples, size=image_size)
+        dataset = load_dataset(ood_dataset, num_samples=args.eval_samples,
+                               size=image_size)
         clean_auc = eval_ood_detection_clean(model, indist_dataset,
-                                                 dataset,
-                                                 size=image_size,
-                                                 eval_samples=args.eval_samples,
-                                                 which_logit='first',
-                                                 indist_samples=args.eval_samples)
+                                             dataset,
+                                             size=image_size,
+                                             eval_samples=args.eval_samples,
+                                             which_logit='first')
         adv_auc = eval_ood_detection_autoattack(model, indist_dataset,
                                                 dataset, size=image_size,
                                                 eval_samples=args.eval_samples,
                                                 which_logit='first',
-                                                n_restarts=args.restarts,
-                                                indist_samples=args.eval_samples)
-        print(f'{task}/{ood_dataset} clean / adv auc: {clean_auc: .4f} / {adv_auc: .4f}')
+                                                n_restarts=args.restarts)
+        print(f'{task}/{ood_dataset} clean auc / adv auc: {clean_auc: .4f} / {adv_auc: .4f}')
 
 
 model = resnet50() if args.task == 'cifar10' else Discriminator(num_classes=1000)
