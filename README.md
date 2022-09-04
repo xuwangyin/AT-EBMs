@@ -42,6 +42,9 @@ Download [tiny_images.bin](http://www.archive.org/download/80-million-tiny-image
 
 - **ImageNet (required for the 256x256 tasks)**
   Download ImageNet and organize it as follows (images do not need to be resized to 256x256):
+  >   $ ls ./datasets/imagenet256
+  > ILSVRC2012_devkit_t12.tar.gz train val
+  
   ```
   $ ls ./datasets/imagenet256
   ILSVRC2012_devkit_t12.tar.gz train val
@@ -84,17 +87,8 @@ LSUN-Church 256:
 > python generate.py --dataset church256 --savedir eval_fid/church256-eval; python fid.py eval_fid/church256-eval datasets/Church256/train/data/
 
 ### Worst-case out-of-distribution detection
-CIFAR-10: 
-> python eval_ood.py --task cifar10
 
-CelebA-HQ 256: 
-> python eval_ood.py --task celebahq256
-
-AFHQ-CAT 256:
-> python eval_ood.py --task afhqcat256
-
-LSUN-Church 256: 
-> python eval_ood.py --task church256
+> python eval_ood.py --task $task # $task can be "cifar10", "celebahq256", "afhqcat256", or "church256"
 
 
 ### 2D experiment
