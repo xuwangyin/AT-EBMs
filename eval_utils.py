@@ -1,18 +1,11 @@
 import os
 import sys
-
-import numpy as np
 import torch
-import torch.nn as nn
 import torchvision
-import torchvision.datasets
 import torchvision.transforms as transforms
 from dataset import *
-# from pgd_attack import perturb, perturb_random_restarts, perturb_sequence
 from pgd_attack import perturb
 from sklearn.metrics import roc_curve, auc as compute_auc
-from torchvision.utils import make_grid
-from misc import set_eval, set_train
 from tqdm import tqdm
 import pathlib
 
@@ -117,9 +110,6 @@ def load_dataset(dataset, num_samples=None, size=None, datadir='./datasets'):
                                                    transform=transform,
                                                    download=False),
          'imagenet32': get_imagenet32_val_dataset(datadir),
-         'TinyImages': TinyImages(
-             datafile=os.path.join(datadir, 'tinyimages1000k.npy'),
-             transform=transforms.ToTensor()),
          'afhqcat256': get_afhq256_dataset(datadir, subset='cat'),
          'celebahq256': get_celebahq256_dataset(datadir),
          'church256': get_church256_dataset(datadir),
@@ -322,12 +312,6 @@ def generate(datasize, samples, savedir, attack_config, model, batch_size=None):
     assert datasize in [32, 256]
     assert not model.training
     print(attack_config)
-
-    # Load seed images
-    if datasize == 32:
-        ood_dataset = load_dataset('TinyImages')
-    else:
-        ood_dataset = get_imagenet256_dataset(datadir='./datasets')
 
     if batch_size is None:
         batch_size = {32: 5000, 256: 100}[datasize]

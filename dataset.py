@@ -1,42 +1,12 @@
 import os
-
-import numpy as np
 import torchvision
 import torchvision.transforms as transforms
-from torch.utils.data import Dataset
-from PIL import Image
-import torch
-import random
 
-
-class TinyImages(Dataset):
-    def __init__(self, datafile, transform=None, n_samples=-1):
-        super(TinyImages, self).__init__()
-
-        self.data = np.load(datafile)
-        if n_samples > 0:
-            self.data = self.data[:n_samples]
-        assert self.data.shape[1:] == (32, 32, 3)
-        assert self.data.dtype == np.uint8
-
-        self.transform = transform
-
-    def __getitem__(self, index):
-        # doing this so that it is consistent with all other datasets
-        # to return a PIL Image
-        img = Image.fromarray(self.data[index])
-        if self.transform is not None:
-            img = self.transform(img)
-        return img
-
-    def __len__(self):
-        return self.data.shape[0]
 
 def get_imagenet32_val_dataset(datadir):
     return torchvision.datasets.ImageFolder(
         os.path.join(datadir, 'imagenet256/val'),
         transforms.Compose([transforms.Resize([32,32]), transforms.ToTensor()]))
-
 
 
 def get_imagenet256_dataset(datadir, interpolation=2, transform=None):
