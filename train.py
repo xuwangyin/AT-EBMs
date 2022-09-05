@@ -65,7 +65,7 @@ parser.add_argument('--AUC_th', type=float, default=0.8,
                     help='When the AUC reaches a high value, interrupt the training')
 parser.add_argument('--cifar10_ood_detection', action='store_true')
 
-parser.add_argument('--datadir', type=str, required=True,
+parser.add_argument('--datadir', type=str, default='./datasets',
                     help='The location of the datasets')
 parser.add_argument('--logdir', type=str, default='./runs',
                     help='The location to store models and tensorboard logs')
