@@ -57,19 +57,19 @@ Download [tiny_images.bin](http://www.archive.org/download/80-million-tiny-image
 ```
 # CIFAR-10 (generation)
 python train.py --indist_steps 5 --r1reg 0.01 --optimizer adam --lr 0.0005 --batch_size 32 --step_size 0.1 \
-                --epochs 5 --dataset cifar10 --datadir ./datasets' --max_steps 25 --startstep 0 --logfid
+                --epochs 5 --dataset cifar10 --max_steps 25 --startstep 0 --logfid
 
 # CelebA-HQ 256
-python train.py --indist_aug --indist_steps 5 --r1reg 30 --optimizer adam --lr 0.00005 --batch_size 40 --step_size 2.0 \
-                --epochs 5 --pretrain --dataset celebahq256 --datadir ./datasets --max_steps 40 --startstep 0 --logfid
+python train.py --indist_aug --indist_steps 5 --r1reg 30 --optimizer adam --lr 0.00005 --batch_size 40 \
+                --step_size 2.0 --epochs 5 --pretrain --dataset celebahq256 --max_steps 40 --startstep 0 --logfid
 
 # AFHQ-CAT 256
-python train.py --indist_aug --indist_steps 5 --r1reg 100 --optimizer adam --lr 0.00005 --batch_size 40 --step_size 2.0 \
-                --epochs 50 --pretrain --dataset afhq256 --datadir ./datasets/' --max_steps 25 --startstep 0 --logfid
+python train.py --indist_aug --indist_steps 5 --r1reg 100 --optimizer adam --lr 0.00005 --batch_size 40 \
+                --step_size 2.0 --epochs 50 --pretrain --dataset afhq256 --max_steps 25 --startstep 0 --logfid
 
 # LSUN-Church 256
-python train.py --indist_aug --indist_steps 5 --r1reg 100 --optimizer adam --lr 0.00005 --batch_size 40 --step_size 2.0 \
-                --epochs 50 --pretrain --dataset afhq256 --datadir ./datasets --max_steps 25 --startstep 0 --logfid
+python train.py --indist_aug --indist_steps 5 --r1reg 100 --optimizer adam --lr 0.00005 --batch_size 40 \
+                --step_size 2.0 --epochs 50 --pretrain --dataset afhq256 --max_steps 25 --startstep 0 --logfid
 ```
 
 
