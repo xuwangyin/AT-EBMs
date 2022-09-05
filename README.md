@@ -72,6 +72,15 @@ python train.py --indist_aug --r1reg 100 --optimizer adam --lr 0.00005 --batch_s
                 --epochs 50 --pretrain --dataset afhq256 --max_steps 25 --startstep 0 --logfid
 ```
 
+CIFAR-10 worst-case out-of-distribution detection
+
+```
+python train.py --cifar10_ood_detection --optimizer sgd --lr 0.1 ---step_size 0.1 \
+                --indist_eps 0.25 --eps 0.5 --indist_steps 10 --max_steps 20 --startstep 20 \
+                --batch-size 128 --dataset cifar10 
+
+```
+
 
 ## Reproduce Experimental Results
 
