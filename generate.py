@@ -1,21 +1,11 @@
 import argparse
-import matplotlib.pyplot as plt
-from eval_utils import load_dataset, compute_adv
 from misc import set_eval
 from models import resnet50
-import pathlib
-from torchvision.utils import make_grid
-import torchvision
-from PIL import Image
-import torchvision.models as models
 import torchvision.transforms as transforms
 from starganv2.core.model import Discriminator
-from dataset import get_imagenet256_dataset
 from eval_utils import generate
-from tqdm import tqdm
 import torch.nn as nn
 import torch
-import os
 
 datadir = './datasets'
 attack_configs = {

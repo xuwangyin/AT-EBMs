@@ -2,7 +2,6 @@ import argparse
 import torch
 import numpy as np
 import torch.nn as nn
-from dataset import *
 from misc import set_eval
 from eval_utils import load_dataset
 from eval_utils import eval_ood_detection_autoattack

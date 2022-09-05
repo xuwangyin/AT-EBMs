@@ -12,7 +12,6 @@ from sklearn.metrics import roc_curve, auc as auc_fn
 from torch.utils.tensorboard import SummaryWriter
 import random
 from functools import partial
-from numpy.random import choice
 import math
 
 from models import resnet50
