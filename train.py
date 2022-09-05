@@ -36,16 +36,16 @@ parser.add_argument('--dataset', type=str,
                     choices=['cifar10', 'celebahq256', 'afhq256', 'church256'],
                     required=True)
 parser.add_argument('--eps', type=float, default=math.inf,
-                    help='PGD attack maximum perturbation')
+                    help='Perturbation limit for out-distribution adversarial attack')
 parser.add_argument('--max_steps', type=int, required=True,
-                    help='PGD attack number of steps')
+                    help='Number of PGD steps for out-distribution adversarial attack')
 parser.add_argument('--startstep', type=int, default=0)
 parser.add_argument('--step_size', type=float, required=True,
                     help='PGD attack step size')
 parser.add_argument('--indist_steps', type=int, default=0,
-                    help='PGD attack step for in-distribution adversarial attack')
+                    help='Number of PGD steps for in-distribution adversarial attack')
 parser.add_argument('--indist_eps', type=float, default=math.inf,
-                    help='PGD attack step-size for in-distribution adversarial attack')
+                    help='Perturbation limit for in-distribution adversarial attack')
 parser.add_argument('--indist_aug', action='store_true',
                     help='Perform data augmentation on in-distribution data')
 
@@ -60,9 +60,9 @@ parser.add_argument('--pretrain', action='store_true',
                     help='Use pretrained model for the D model')
 parser.add_argument('--batch_size', type=int, default=32)
 parser.add_argument('--epochs_per_step', type=int, required=True,
-                    help='number of epochs for training the D model')
+                    help='number of training epochs for each step')
 parser.add_argument('--AUC_th', type=float, default=0.8,
-                    help='When the AUC reaches a high value, interrupt the training')
+                    help='When the AUC reaches the threshold, interrupt the training')
 parser.add_argument('--cifar10_ood_detection', action='store_true')
 
 parser.add_argument('--datadir', type=str, default='./datasets',
@@ -199,6 +199,7 @@ else:
     model = Discriminator(num_classes=1000)
     if args.pretrain:
         # The pretrained model is trained on the ImgeNet classification task
+        # Using the pretrained model gives slightly better FID
         model.load_state_dict(torch.load('checkpoints/stargan/ckpt.pth'))
         print('loaded pretrained model')
 
