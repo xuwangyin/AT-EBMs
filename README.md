@@ -48,7 +48,7 @@ Download [tiny_images.bin](http://www.archive.org/download/80-million-tiny-image
   $ ls ./datasets/imagenet256/train
   n01440764  n01739381  n01978287  n02092002 ...
   ```
-  2. Run `python prepare_datasets/create_imagenet50K.py`, which will create a 50K subset for FID evaluation.
+  2. Run `python prepare_datasets/create_imagenet50K.py`. This will create a 50K subset for FID evaluation.
 
 
 
