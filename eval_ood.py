@@ -15,6 +15,7 @@ parser.add_argument('--task', type=str,
                     required=True)
 parser.add_argument('--restarts', type=int, default=5)
 parser.add_argument('--eval_samples', type=int, default=1024)
+parser.add_argument('--batch_size', type=int, default=100)
 args = parser.parse_args()
 
 checkpoint = {
@@ -35,7 +36,7 @@ np.random.seed(123)
 torch.manual_seed(123)
 
 
-def run_ood_eval(model, task):
+def eval_ood(model, task):
     image_size = 32 if task == 'cifar10' else 256
     indist_dataset = load_dataset(task, size=image_size)
     ood_datasets = {
@@ -59,7 +60,8 @@ def run_ood_eval(model, task):
                                                 dataset, size=image_size,
                                                 eval_samples=args.eval_samples,
                                                 which_logit='first',
-                                                n_restarts=args.restarts)
+                                                n_restarts=args.restarts,
+                                                batch_size=args.batch_size)
         print(f'{task}/{ood_dataset} clean auc / adv auc: {clean_auc: .4f} / {adv_auc: .4f}')
 
 
@@ -68,6 +70,6 @@ model = nn.DataParallel(model)
 model = model.to(device)
 model.load_state_dict(torch.load(checkpoint[args.task]))
 set_eval(model)
-run_ood_eval(model, args.task)
+eval_ood(model, args.task)
 
 

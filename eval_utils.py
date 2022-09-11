@@ -100,23 +100,28 @@ def load_dataset(dataset, num_samples=None, size=None, datadir='./datasets'):
         torch.manual_seed(0)
         uniform_noise = torch.rand([num_samples, 3, size, size])
         return torch.utils.data.TensorDataset(uniform_noise)
-
-    D = {'cifar10': torchvision.datasets.CIFAR10(datadir, train=False,
-                                                 transform=transform,
-                                                 download=False),
-         'svhn': torchvision.datasets.SVHN(datadir, split='test',
-                                           transform=transform, download=False),
-         'cifar100': torchvision.datasets.CIFAR100(datadir, train=False,
-                                                   transform=transform,
-                                                   download=False),
-         'imagenet32': get_imagenet32_val_dataset(datadir),
-         'afhqcat256': get_afhq256_dataset(datadir, subset='cat'),
-         'celebahq256': get_celebahq256_dataset(datadir),
-         'church256': get_church256_dataset(datadir),
-         'imagenetval': get_imagenet256_val_dataset(datadir),
-         }
-    return D[dataset]
-
+    elif dataset == 'cifar10':
+        return torchvision.datasets.CIFAR10(datadir, train=False,
+                                            transform=transform, download=True)
+    elif dataset == 'svhn':
+        return torchvision.datasets.SVHN(datadir, split='test',
+                                         transform=transform, download=True)
+    elif dataset == 'cifar100':
+        return torchvision.datasets.CIFAR100(datadir, train=False,
+                                             transform=transform, download=True)
+    elif dataset == 'imagenet32':
+        assert size == 32
+        return get_imagenet32_val_dataset(datadir)
+    elif dataset == 'afhqcat256':
+        return get_afhq256_dataset(datadir, subset='cat')
+    elif dataset == 'celebahq256':
+        return get_celebahq256_dataset(datadir)
+    elif dataset == 'church256':
+        return get_church256_dataset(datadir)
+    elif dataset == 'imagenetval':
+        return get_imagenet256_val_dataset(datadir)
+    else:
+        raise ValueError('Unkown Dataset')
 
 
 def load_data(dataset, samples):
@@ -169,8 +174,8 @@ def eval_ood_detection_clean(model, indist_dataset, ood_dataset, size,
 
 
 def eval_ood_detection_autoattack(model, indist_dataset, ood_dataset, size,
-                                  eval_samples,
-                                  which_logit='first', n_restarts=5):
+                                  eval_samples, which_logit='first',
+                                  n_restarts=5, batch_size=100):
     """
     Evaluate adversarial out-of-distribution detection performance; use
     AutoAttack to perturb OOD data
@@ -211,9 +216,9 @@ def eval_ood_detection_autoattack(model, indist_dataset, ood_dataset, size,
     # adversary.attacks_to_run = ['square']
     # adversary.square.n_queries = 5000
     with torch.no_grad():
-        bs = {32: 200, 256: 100}[size]
         ood_data_adv = adversary.run_standard_evaluation(ood_data,
-                                                         ood_data_labels, bs=bs)
+                                                         ood_data_labels,
+                                                         bs=batch_size)
         auc_score = compute_auroc(indist_data, ood_data_adv, model, which_logit)
         return auc_score
 
