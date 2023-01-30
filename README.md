@@ -23,7 +23,7 @@ CelebAHQ256  imagenet256  AFHQ-png ...
 
 **CelebA-HQ 256** 
 
-Download [data512x512.zip](https://drive.google.com/drive/folders/11Vz0fqHS2rXDb5pprgTjpD7S2BAJhi1P), unzip the file to `./prepare_datasets/downloads/celebahq_files/`, and then run `$ sh ./prepare_datasets/create_celebahq256.sh`
+Download [data512x512.zip](https://drive.google.com/drive/folders/11Vz0fqHS2rXDb5pprgTjpD7S2BAJhi1P), unzip the images to `./prepare_datasets/downloads/celebahq_files/`, and then run `$ sh ./prepare_datasets/create_celebahq256.sh`
 
 **AFHQ-CAT 256** 
 
@@ -41,14 +41,13 @@ Run `sh ./prepare_datasets/create_afhqcat256.sh`
 Download [tiny_images.bin](http://www.archive.org/download/80-million-tiny-images-2-of-2/tiny_images.bin) to `./datasets`.
 
 **ImageNet (required for the 256x256 tasks)**
-  1. Download ImageNet and organize it as follows (images do not need to be resized to 256x256):
+  Download ImageNet and organize it as follows (images do not need to be resized to 256x256):
   ```
   $ ls ./datasets/imagenet256
   ILSVRC2012_devkit_t12.tar.gz train val
   $ ls ./datasets/imagenet256/train
   n01440764  n01739381  n01978287  n02092002 ...
   ```
-  2. Run `python prepare_datasets/create_imagenet50K.py`. This will create a 50K subset for FID evaluation.
 
 
 

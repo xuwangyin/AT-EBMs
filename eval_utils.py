@@ -327,12 +327,15 @@ def generate(datasize, samples, savedir, attack_config, model, batch_size=None):
     if datasize == 32:
         ood_samples = torch.load('./data/cifar_fid_imgs_50K.pt')[:samples]
         ood_dataset = torch.utils.data.TensorDataset(ood_samples)
+        loader = torch.utils.data.DataLoader(ood_dataset, batch_size=batch_size,
+                                             shuffle=False)
     else:
-        ood_dataset = torchvision.datasets.ImageFolder(
-            os.path.join(datadir, 'imagenet50K'), transform=ToTensor())
+        # ood_dataset = torchvision.datasets.ImageFolder(os.path.join(datadir, 'imagenet50K'), transform=ToTensor())
+        ood_dataset = get_imagenet256_dataset(datadir='./datasets', transform=transforms.ToTensor())
+        # https://pytorch.org/docs/stable/data.html#torch.utils.data.random_split
+        loader = torch.utils.data.DataLoader(ood_dataset, batch_size=batch_size,
+                                             shuffle=True, generator=torch.Generator().manual_seed(0))
     print('loaded ood_samples')
-    loader = torch.utils.data.DataLoader(ood_dataset, batch_size=batch_size,
-                                         shuffle=False)
 
     pathlib.Path(savedir).mkdir(parents=True, exist_ok=True)
     for i, data in tqdm(zip(range(max_iters), loader), total=max_iters):
@@ -355,7 +358,7 @@ def compute_fid(dataset, model, savedir):
     }
     gt_dirs = {
         'cifar10': 'data/fid_stats_cifar10_train.npz',
-        'celebahq256': './datasets/CelebAHQ256/train/png',
+        'celebahq256': './datasets/CelebAHQ256/train/data',
         'afhq256': './datasets/AFHQ-png/afhq256/train/cat/data',
         'church256': './datasets/Church256/train/data',
     }
