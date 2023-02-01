@@ -10,6 +10,9 @@ scipy==1.7.3
 Pillow==9.1.0
 scikit_learn==1.0.2
 tensorflow==1.15 # for FID evaluation
+munch
+tensorboard
+tqdm
 ```
 
 ## Preparing Data
