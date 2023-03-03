@@ -331,7 +331,7 @@ def generate(datasize, samples, savedir, attack_config, model, batch_size=None):
                                              shuffle=False)
     else:
         # ood_dataset = torchvision.datasets.ImageFolder(os.path.join(datadir, 'imagenet50K'), transform=ToTensor())
-        ood_dataset = get_imagenet256_dataset(datadir='./datasets', transform=transforms.ToTensor())
+        ood_dataset = get_imagenet256_dataset(datadir='./datasets')
         # https://pytorch.org/docs/stable/data.html#torch.utils.data.random_split
         loader = torch.utils.data.DataLoader(ood_dataset, batch_size=batch_size,
                                              shuffle=True, generator=torch.Generator().manual_seed(0))
