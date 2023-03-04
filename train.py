@@ -95,7 +95,7 @@ def get_task_signature(args):
 
 def log_fid():
     model.eval()
-    savedir = os.path.join(taskdir, 'fid_generated_samples')
+    savedir = os.path.join('eval_fid', taskdir)
     print('computing fid ... ', end=' ')
     fid = compute_fid(dataset=args.dataset, model=model, savedir=savedir)
     print(f'fid: {fid}')
