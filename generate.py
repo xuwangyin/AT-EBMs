@@ -55,6 +55,6 @@ if __name__ == '__main__':
 
     attack_config = attack_configs[args.dataset]
     datasize = 32 if args.dataset == 'cifar10' else 256
-    generate(datasize, args.samples, args.savedir, attack_config, model)
+    generate(datasize, args.samples, args.savedir, attack_config, model, args.batch_size)
 
 
