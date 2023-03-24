@@ -18,7 +18,9 @@ files = glob.glob(os.path.join(args.datadir, '**/*.*'), recursive=True)
 print('found {} files'.format(len(files)))
 for fullpath in files:
   fullpath = fullpath.strip()
-  savefile = fullpath.replace(args.datadir, args.savedir) + '.png'
+  savefile = fullpath.replace(args.datadir, args.savedir)
+  if not savefile.endswith('.png'):
+      savefile += '.png'  
   Path(os.path.dirname(savefile)).mkdir(parents=True, exist_ok=True)
   
   im = Image.open(fullpath)
