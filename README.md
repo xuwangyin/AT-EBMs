@@ -19,7 +19,7 @@ tqdm
 By default, datasets are organized in the `./datasets` directory:
 ```
 $ ls ./datasets
-CelebAHQ256  imagenet256  AFHQ-png ...
+CelebAHQ256  imagenet256  afhq256 ...
 ```
 
 ### Target distribution dataset ( $p_\textrm{data}$ )
@@ -67,11 +67,11 @@ python train.py --indist_aug --r1reg 30 --optimizer adam --lr 0.00005 --batch_si
 
 # AFHQ-CAT 256
 python train.py --indist_aug --r1reg 100 --optimizer adam --lr 0.00005 --batch_size 40 --step_size 2.0 \
-                --epochs 50 --pretrain --dataset afhq256 --max_steps 25 --startstep 0 --logfid
+                --epochs 50 --pretrain --dataset afhq256-cat --max_steps 25 --startstep 0 --logfid
 
 # LSUN-Church 256
 python train.py --indist_aug --r1reg 100 --optimizer adam --lr 0.00005 --batch_size 40 --step_size 2.0 \
-                --epochs 50 --pretrain --dataset afhq256 --max_steps 25 --startstep 0 --logfid
+                --epochs 50 --pretrain --dataset church256 --max_steps 25 --startstep 0 --logfid
 ```
 
 CIFAR-10 worst-case out-of-distribution detection
@@ -98,7 +98,7 @@ python fid.py eval_fid/celebahq256-eval datasets/CelebAHQ256/train/data
 
 # AFHQ-CAT 256 
 python generate.py --dataset afhqcat256 --savedir eval_fid/afhqcat256-eval
-python fid.py eval_fid/afhqcat256-eval datasets/AFHQ-png/afhq256/train/cat/data/
+python fid.py eval_fid/afhqcat256-eval datasets/afhq256/train/cat/data/
 
 # LSUN-Church 256: 
 python generate.py --dataset church256 --savedir eval_fid/church256-eval
