@@ -39,10 +39,10 @@ def get_afhq256_dataset(datadir, transform=transforms.Compose(
     assert subset in [None, 'dog', 'cat', 'wild']
     if subset is None:
         return torchvision.datasets.ImageFolder(
-            os.path.join(datadir, 'AFHQ-png/afhq256/train'), transform)
+            os.path.join(datadir, 'afhq256/train'), transform)
     else:
         return torchvision.datasets.ImageFolder(
-            os.path.join(datadir, f'AFHQ-png/afhq256/train/{subset}'),
+            os.path.join(datadir, f'afhq256/train/{subset}'),
             transform)
 
 
@@ -51,10 +51,10 @@ def get_afhq256_val_dataset(datadir, transform=transforms.Compose(
     assert subset in [None, 'dog', 'cat', 'wild']
     if subset is None:
         return torchvision.datasets.ImageFolder(
-            os.path.join(datadir, 'AFHQ-png/afhq256/val'), transform)
+            os.path.join(datadir, 'afhq256/val'), transform)
     else:
         return torchvision.datasets.ImageFolder(
-            os.path.join(datadir, f'AFHQ-png/afhq256/val/{subset}'), transform)
+            os.path.join(datadir, f'afhq256/val/{subset}'), transform)
 
 
 def get_church256_dataset(datadir, transform=transforms.Compose(
