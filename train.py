@@ -33,7 +33,7 @@ import InNOutRobustness.utils.datasets as dl
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataset', type=str,
-                    choices=['cifar10', 'celebahq256', 'afhq256', 'church256'],
+                    choices=['cifar10', 'celebahq256', 'afhq256-cat', 'church256'],
                     required=True)
 parser.add_argument('--eps', type=float, default=math.inf,
                     help='Perturbation limit for out-distribution adversarial attack')
@@ -76,6 +76,8 @@ parser.add_argument('--fid_log_interval', type=int, default=500,
 parser.add_argument('--rand_seed', type=int, default=0)
 parser.add_argument('--resume', action='store_true',
                     help='Resume model and optimizer checkpoints')
+parser.add_argument('--comment', type=str, default='',
+                    help='Comment to be added to the task signature')
 
 args = parser.parse_args()
 
@@ -158,7 +160,7 @@ if args.dataset in ['cifar10']:
 else:
     if args.indist_aug:
         img_size = 256
-        if args.dataset in ['afhq256', 'church256']:
+        if args.dataset in ['afhq256-cat', 'church256']:
             scale, ratio = (0.8, 1.0), (0.9, 1.1)
         else:
             scale, ratio = (0.9, 1.0), (0.95, 1.05)
@@ -176,7 +178,7 @@ else:
 
     datasets = {'celebahq256': get_celebahq256_dataset,
                 'church256': get_church256_dataset,
-                'afhq256': partial(get_afhq256_dataset, subset='cat')}
+                'afhq256-cat': partial(get_afhq256_dataset, subset='cat')}
     indist_dataset = datasets[args.dataset](args.datadir, indist_transform)
     indist_loader = torch.utils.data.DataLoader(
         indist_dataset, batch_size=args.batch_size, shuffle=True,
