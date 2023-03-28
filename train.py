@@ -33,7 +33,7 @@ import InNOutRobustness.utils.datasets as dl
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataset', type=str,
-                    choices=['cifar10', 'celebahq256', 'afhq256-cat', 'church256'],
+                    choices=['cifar10', 'celebahq256', 'afhq256-cat', 'church256', 'afhq256'],
                     required=True)
 parser.add_argument('--eps', type=float, default=math.inf,
                     help='Perturbation limit for out-distribution adversarial attack')
@@ -160,7 +160,7 @@ if args.dataset in ['cifar10']:
 else:
     if args.indist_aug:
         img_size = 256
-        if args.dataset in ['afhq256-cat', 'church256']:
+        if args.dataset in ['afhq256-cat', 'church256', 'afhq256']:
             scale, ratio = (0.8, 1.0), (0.9, 1.1)
         else:
             scale, ratio = (0.9, 1.0), (0.95, 1.05)
@@ -178,6 +178,7 @@ else:
 
     datasets = {'celebahq256': get_celebahq256_dataset,
                 'church256': get_church256_dataset,
+                'afhq256': get_afhq256_dataset,
                 'afhq256-cat': partial(get_afhq256_dataset, subset='cat')}
     indist_dataset = datasets[args.dataset](args.datadir, indist_transform)
     indist_loader = torch.utils.data.DataLoader(
@@ -227,6 +228,7 @@ best_fid = math.inf
 for step in range(args.startstep, args.max_steps + 1):
     rolling_adv_auc = deque(maxlen=100)
     step_interrupt = False
+    assert args.indist_steps == 0
     indist_attack_config = dict(norm='L2', eps=args.indist_eps,
                                 steps=args.indist_steps,
                                 step_size=args.step_size)
@@ -237,7 +239,7 @@ for step in range(args.startstep, args.max_steps + 1):
     for epoch in range(0, max_epochs):
         tb_logger.flush()
 
-        for i, indist_imgs in enumerate(indist_loader):
+        for i, (indist_imgs, indist_labels) in enumerate(indist_loader):
             if args.logfid and global_step % args.fid_log_interval == 0:
                 fid = log_fid()
                 if fid < best_fid:
@@ -253,42 +255,42 @@ for step in range(args.startstep, args.max_steps + 1):
             global_step += 1
 
             # Discard labels
-            if isinstance(indist_imgs, list):
-                indist_imgs = indist_imgs[0]
             if isinstance(outdist_imgs, list):
                 outdist_imgs = outdist_imgs[0]
+            outdist_labels = torch.randint(low=0, high=len(indist_dataset.classes), size=indist_labels.size())
             indist_imgs, outdist_imgs = indist_imgs.to(device), outdist_imgs.to(device)
+            indist_labels, outdist_labels = indist_labels.to(device), outdist_labels.to(device)
             assert indist_imgs.shape[0] == outdist_imgs.shape[0]
 
             # Compute adversarial out-distribution data
             model.eval()
             # Gradient ascent on the D model
-            outdist_imgs_adv = perturb(model, outdist_imgs,
+            outdist_imgs_adv = perturb(model, outdist_imgs, outdist_labels,
                                        normalization=normalization,
                                        **outdist_attack_config)
-            # Gradient descent on the D model
-            indist_input = perturb(model, indist_imgs,
-                                   normalization=normalization,
-                                   **indist_attack_config, descent=True)
+            # # Gradient descent on the D model
+            # indist_input = perturb(model, indist_imgs,
+            #                        normalization=normalization,
+            #                        **indist_attack_config, descent=True)
             targets = torch.cat(
-                [torch.ones(indist_imgs.shape[0], dtype=torch.float32),
-                 torch.zeros(outdist_imgs_adv.shape[0],dtype=torch.float32)]).to(device)
+                [torch.ones(args.batch_size, dtype=torch.float32),
+                 torch.zeros(args.batch_size,dtype=torch.float32)]).to(device)
 
             # Train the D model to seperate in-dist data and adversarial
             # out-distribution data
             set_train(model)
             optimizer.zero_grad()
             if args.r1reg > 0:
-                indist_input.requires_grad_()
-                pos_logits = forward(model, indist_input, normalization)
-                reg_loss = r1_reg(pos_logits, indist_input)
-                neg_logits = forward(model, outdist_imgs_adv, normalization)
+                indist_imgs.requires_grad_()
+                pos_logits = forward(model, indist_imgs, indist_labels, normalization)
+                reg_loss = r1_reg(pos_logits, indist_imgs)
+                neg_logits = forward(model, outdist_imgs_adv, outdist_labels, normalization)
                 logits = torch.cat([pos_logits, neg_logits])
                 loss = criterion(input=logits,
                                  target=targets) + args.r1reg * reg_loss
             else:
-                pos_logits = forward(model, indist_input, normalization)
-                neg_logits = forward(model, outdist_imgs_adv, normalization)
+                pos_logits = forward(model, indist_imgs, indist_labels, normalization)
+                neg_logits = forward(model, outdist_imgs_adv, outdist_labels, normalization)
                 logits = torch.cat([pos_logits, neg_logits])
                 loss = criterion(input=logits, target=targets)
             loss.backward()
@@ -303,8 +305,8 @@ for step in range(args.startstep, args.max_steps + 1):
             # AUC on clean in-dist data vs. clean out-distribution data
             model.eval()
             with torch.no_grad():
-                pos_logits = forward(model, indist_imgs, normalization)
-                neg_logits = forward(model, outdist_imgs, normalization)
+                pos_logits = forward(model, indist_imgs, indist_labels, normalization)
+                neg_logits = forward(model, outdist_imgs, outdist_labels, normalization)
                 logits = torch.cat([pos_logits, neg_logits])
                 fpr_, tpr_, thresholds = roc_curve(targets.data.cpu(),
                                                    logits.data.cpu())
