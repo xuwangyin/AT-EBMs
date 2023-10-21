@@ -45,7 +45,11 @@ def perturb(model, x, norm, eps, step_size, steps, normalization,
         loss = logits.sum()
         if descent:
             loss = -logits.sum()
-        grad, = torch.autograd.grad(loss, [x])
+        # grad, = torch.autograd.grad(loss, [x])
+        grad, = torch.autograd.grad(outputs=loss, inputs=[x], \
+                                    grad_outputs=None, retain_graph=False, \
+                                    create_graph=False, only_inputs=True, \
+                                    allow_unused=False)
         with torch.no_grad():
             x = step.step(x, grad)
             x = step.project(x)
