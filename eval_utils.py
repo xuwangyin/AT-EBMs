@@ -8,6 +8,10 @@ from pgd_attack import perturb
 from sklearn.metrics import roc_curve, auc as compute_auc
 from tqdm import tqdm
 import pathlib
+import wandb
+from torchvision.utils import make_grid
+from torchvision.transforms.functional import to_pil_image
+from concurrent.futures import ThreadPoolExecutor
 
 sys.path.append('./auto-attack')
 from autoattack import AutoAttack
@@ -274,8 +278,7 @@ def ImageNetWrapper(model, which_logit):
     return NormalizationWrapper(model, mean, std)
 
 
-def compute_adv(x, model, attack_config, num_random_restarts=1, sequence=False,
-                show_progress=False):
+def compute_adv(x, model, attack_config):
     device = next(model.parameters()).device
     assert not model.training
     assert x.shape[-1] in [32, 128, 256, 224, 512]
@@ -285,35 +288,12 @@ def compute_adv(x, model, attack_config, num_random_restarts=1, sequence=False,
     if attack_config['eps'] < 1e-8:
         return x.clone()
 
-    adv = []
-    if show_progress:
-        from tqdm import tqdm
-        data = tqdm(torch.split(x, 100), position=0, leave=True)
-    else:
-        data = torch.split(x, 100)
-
-    for batch in data:
-        if sequence:
-            batch_adv = perturb_sequence(model, batch.to(device),
-                                         normalization=normalization,
-                                         **attack_config)
-        else:
-            if num_random_restarts > 1:
-                batch_adv = perturb_random_restarts(model, batch.to(device),
-                                                    normalization=normalization,
-                                                    num_random_restarts=num_random_restarts,
-                                                    **attack_config)
-            else:
-                batch_adv = perturb(model, batch.to(device),
-                                    normalization=normalization,
-                                    **attack_config)
-        adv.append(batch_adv)
-    adv = torch.cat(adv)
+    adv = perturb(model, x.to(device), normalization=normalization, **attack_config)
     torch.cuda.empty_cache()
     return adv.cpu()
 
 
-def generate(datasize, samples, savedir, attack_config, model, batch_size=None):
+def generate(datasize, samples, savedir, attack_config, model, batch_size=None, outdist_datadir=None):
     assert datasize in [32, 256]
     assert not model.training
     print(attack_config)
@@ -330,25 +310,38 @@ def generate(datasize, samples, savedir, attack_config, model, batch_size=None):
         loader = torch.utils.data.DataLoader(ood_dataset, batch_size=batch_size,
                                              shuffle=False)
     else:
-        # ood_dataset = torchvision.datasets.ImageFolder(os.path.join(datadir, 'imagenet50K'), transform=ToTensor())
-        ood_dataset = get_imagenet256_dataset(datadir='./datasets')
-        # https://pytorch.org/docs/stable/data.html#torch.utils.data.random_split
-        loader = torch.utils.data.DataLoader(ood_dataset, batch_size=batch_size,
-                                             shuffle=True, generator=torch.Generator().manual_seed(0))
+        # # Note that the seed only control the order of items, not the random transformation applied to the items,
+        # # so we need to first create a fixed dataset for the evaluation
+        # ood_dataset = get_imagenet256_dataset(datadir='./datasets')
+        # # https://pytorch.org/docs/stable/data.html#torch.utils.data.random_split
+        # loader = torch.utils.data.DataLoader(ood_dataset, batch_size=batch_size,
+        #                                      shuffle=True, generator=torch.Generator().manual_seed(0))
+        # Run make_imagenet50k.ipynb to create imagenet50K
+        ood_dataset = torchvision.datasets.ImageFolder(outdist_datadir or './datasets/imagenet50K',
+                                                       transform=transforms.ToTensor())
+        loader = torch.utils.data.DataLoader(ood_dataset,
+                                             batch_size=batch_size,
+                                             num_workers=8,
+                                             shuffle=False)
     print('loaded ood_samples')
-
     pathlib.Path(savedir).mkdir(parents=True, exist_ok=True)
+    def save_image(image, idx):
+        to_pil_image(image).save(os.path.join(savedir, f'{idx:06d}.png'))
     for i, data in tqdm(zip(range(max_iters), loader), total=max_iters):
         seed_imgs = data[0] if isinstance(data, list) else data
         adv = compute_adv(seed_imgs, model, attack_config)
 
-        # Save generated images
-        for j in range(adv.shape[0]):
-            transforms.ToPILImage()(adv[j]).save(
-                os.path.join(savedir, f'{i * batch_size + j:06d}.png'))
+        if i == 0 and wandb.run is not None:
+            if not hasattr(generate, "_logged_original_images"):
+                wandb.log({"original_images": wandb.Image(make_grid(seed_imgs[:10].cpu(), nrow=10, padding=2))})
+                setattr(generate, "_logged_original_images", True)
+            wandb.log({"generated_images": wandb.Image(make_grid(adv[:10].cpu(), nrow=10, padding=2))})
 
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            for j in range(adv.shape[0]):
+                executor.submit(save_image, adv[j], i * batch_size + j)
 
-def compute_fid(dataset, model, savedir):
+def compute_fid(dataset, model, savedir, steps=None, step_size=None, outdist_datadir=None):
     pathlib.Path(savedir).mkdir(parents=True, exist_ok=True)
     attack_configs = {
         'cifar10': dict(norm='L2', eps=10000, steps=32, step_size=0.2),
@@ -370,14 +363,26 @@ def compute_fid(dataset, model, savedir):
     }
     datasize = 32 if dataset == 'cifar10' else 256
     assert dataset in attack_configs.keys()
-    generate(datasize=datasize, samples=samples[dataset], savedir=savedir,
-             attack_config=attack_configs[dataset], model=model)
+    attack_config = attack_configs[dataset]
+    attack_config['steps'] = steps or attack_config['steps']
+    attack_config['step_size'] = step_size or attack_config['step_size']
+    generate(datasize=datasize,
+             samples=samples[dataset],
+             savedir=savedir,
+             attack_config=attack_config,
+             model=model,
+             outdist_datadir=outdist_datadir)
     assert len([name for name in os.listdir(savedir) if
                 os.path.isfile(os.path.join(savedir, name))]) == samples[
                dataset]
-    return calculate_fid_given_paths([savedir, gt_dirs[dataset]],
-                                     batch_size=200,
-                                     device=torch.device('cuda'), dims=2048,
-                                     num_workers=4)
-
+    try:
+        fid = calculate_fid_given_paths([savedir, gt_dirs[dataset]],
+                                        batch_size=200,
+                                        device=torch.device('cuda'), dims=2048,
+                                        num_workers=4)
+    except Exception as e:
+        print(f"An error occurred while calculating FID: {e}")
+        wandb.log({"exception": str(e)})
+        fid = -1
+    return fid
 

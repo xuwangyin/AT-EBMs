@@ -31,6 +31,9 @@ from eval_utils import compute_fid
 sys.path.append('./InNOutRobustness')
 import InNOutRobustness.utils.datasets as dl
 
+import wandb
+from torchvision.utils import make_grid
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataset', type=str,
                     choices=['cifar10', 'celebahq256', 'afhq256-cat', 'church256'],
@@ -74,6 +77,9 @@ parser.add_argument('--fid_log_interval', type=int, default=500,
                     help='Log fid every 500 iterations')
 
 parser.add_argument('--rand_seed', type=int, default=0)
+parser.add_argument('--generation_steps', type=int, default=None)
+parser.add_argument('--generation_step_size', type=float, default=None)
+parser.add_argument('--outdist_datadir', type=str, default=None)
 parser.add_argument('--resume', action='store_true',
                     help='Resume model and optimizer checkpoints')
 parser.add_argument('--comment', type=str, default='',
@@ -82,7 +88,8 @@ parser.add_argument('--comment', type=str, default='',
 args = parser.parse_args()
 
 def get_task_signature(args):
-    exclude = ['resume', 'logfid', 'fid_log_interval', 'datadir', 'logdir']
+    exclude = ['resume', 'logfid', 'fid_log_interval', 'datadir', 'logdir',
+               'outdist_datadir', 'generation_steps', 'generation_step_size']
     if args.dataset != 'cifar10':
         exclude.append('cifar10_ood_detection')
     if args.dataset == 'cifar10':
@@ -94,16 +101,66 @@ def get_task_signature(args):
             sig.append(f'{key}{v}')
     return '-'.join(sig)
 
+def get_wandb_signature(args):
+    """
+    Generate tags and a group name for wandb.init based on training arguments.
+
+    :param args: Namespace object from argparse containing training arguments.
+    :return: tuple containing a list of tags and a single group name
+    """
+    # Define tags based on specific, frequently varied or critical parameters
+    tags = [
+        f"lr={args.lr}",
+        f"epochs_per_step={args.epochs_per_step}",
+        f"AUC_th={args.AUC_th}",
+        f"rand_seed={args.rand_seed}",
+        f"batch_size={args.batch_size}",
+        f"optimizer={args.optimizer}",
+        f"weight_decay={args.wd}",
+        f"r1reg={args.r1reg}",
+        f"eps={args.eps}",
+        f"step_size={args.step_size}",
+        f"max_steps={args.max_steps}",
+        f"indist_steps={args.indist_steps}",
+        f"generation_steps={args.generation_steps}",
+        f"generation_step_size={args.generation_step_size}",
+    ]
+
+    # Add boolean flags as tags only if they are true
+    if args.indist_aug:
+        tags.append("indist_aug")
+    if args.pretrain:
+        tags.append("pretrain")
+    if args.cifar10_ood_detection:
+        tags.append("cifar10_ood_detection")
+
+    # Use the dataset as the primary grouping mechanism
+    group = f"Dataset_{args.dataset}"
+
+    # Optionally, you might want to include more context in your group name
+    # by combining it with another major argument if it makes sense for your experiments
+    # Example: group += f"_Opt_{args.optimizer}"
+
+    return tags, group
+
 
 def log_fid():
     model.eval()
     savedir = os.path.join('eval_fid', taskdir)
     print('computing fid ... ', end=' ')
-    fid = compute_fid(dataset=args.dataset, model=model, savedir=savedir)
+    fid = compute_fid(dataset=args.dataset,
+                      model=model,
+                      savedir=savedir,
+                      steps=args.generation_steps,
+                      step_size=args.generation_step_size,
+                      outdist_datadir=args.outdist_datadir)
     print(f'fid: {fid}')
-    tb_logger.add_scalar('fid', fid, global_step)
+    wandb.log({'fid': fid, 'global_step': global_step})
     return fid
 
+
+tags, group = get_wandb_signature(args)
+wandb.init(project="AT-EBMs", tags=tags, group=group, config=vars(args))
 
 np.random.seed(args.rand_seed)
 torch.manual_seed(args.rand_seed)
@@ -117,7 +174,6 @@ if args.resume:
 torch.backends.cudnn.benchmark = True
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 taskdir = os.path.join(args.logdir, get_task_signature(args))
-tb_logger = SummaryWriter(taskdir)
 global_step = 0
 normalization = 'cifar10' if args.dataset in ['cifar10'] else 'imagenet'
 
@@ -129,7 +185,7 @@ if args.dataset in ['cifar10']:
                                        size=32, config_dict={})
         outdist_loader = dl.get_80MTinyImages(batch_size=args.batch_size,
                                               augm_type='autoaugment_cutout',
-                                              num_workers=1, size=32,
+                                              num_workers=8, size=32,
                                               exclude_cifar=True,
                                               exclude_cifar10_1=True,
                                               config_dict={})
@@ -143,7 +199,7 @@ if args.dataset in ['cifar10']:
         outdist_loader = torch.utils.data.DataLoader(outdist_dataset,
                                                      batch_size=args.batch_size,
                                                      shuffle=True,
-                                                     num_workers=4,
+                                                     num_workers=8,
                                                      pin_memory=True,
                                                      drop_last=True)
         indist_dataset = torchvision.datasets.CIFAR10(root=args.datadir,
@@ -152,7 +208,7 @@ if args.dataset in ['cifar10']:
                                                       transform=cifar10_transform)
         indist_loader = torch.utils.data.DataLoader(indist_dataset,
                                                     batch_size=args.batch_size,
-                                                    shuffle=True, num_workers=4,
+                                                    shuffle=True, num_workers=8,
                                                     pin_memory=True,
                                                     drop_last=True)
 
@@ -235,8 +291,6 @@ for step in range(args.startstep, args.max_steps + 1):
 
     max_epochs = args.epochs_per_step if step < args.max_steps else sys.maxsize
     for epoch in range(0, max_epochs):
-        tb_logger.flush()
-
         for i, indist_imgs in enumerate(indist_loader):
             if args.logfid and global_step % args.fid_log_interval == 0:
                 fid = log_fid()
@@ -257,8 +311,14 @@ for step in range(args.startstep, args.max_steps + 1):
                 indist_imgs = indist_imgs[0]
             if isinstance(outdist_imgs, list):
                 outdist_imgs = outdist_imgs[0]
+
+            if i == 0:
+                wandb.log({"indist_imgs": wandb.Image(make_grid(indist_imgs[:10], nrow=10, padding=2))})
+                wandb.log({"outdist_imgs": wandb.Image(make_grid(outdist_imgs[:10], nrow=10, padding=2))})
+
             indist_imgs, outdist_imgs = indist_imgs.to(device), outdist_imgs.to(device)
             assert indist_imgs.shape[0] == outdist_imgs.shape[0]
+
 
             # Compute adversarial out-distribution data
             model.eval()
@@ -323,18 +383,22 @@ for step in range(args.startstep, args.max_steps + 1):
                 f'loss {loss:.3f} adv auc {auc:.3f} clean auc {clean_auc:.3f} '
                 f'(100-avg adv auc {np.mean(rolling_adv_auc):.3f}) '
                 f'dist {l2_dist:.3f}/{args.eps}/{step * args.step_size} '
+                f'dist_relative {(1 if step == 0 else l2_dist/(step * args.step_size)):.3f} '
                 f'rt {rt:.3f} rt0 {rt0:.3f} '
                 f'pos/neg {indist_imgs.shape[0]}/{outdist_imgs_adv.shape[0]}')
 
             log_interval = min(20, len(indist_loader))
             if i % log_interval == log_interval - 1:
-                tb_logger.add_scalar('training_loss', loss.item(), global_step)
-                tb_logger.add_scalar('adv_auc', auc, global_step)
-                tb_logger.add_scalar('clean_auc', clean_auc, global_step)
-                tb_logger.add_scalar('dist', l2_dist, global_step)
-                tb_logger.add_scalar('rt', rt, global_step)
-                tb_logger.add_scalar('rt0', rt0, global_step)
-                tb_logger.add_scalar('step', step, global_step)
+                wandb.log({
+                    'training_loss': loss.item(),
+                    'adv_auc': auc,
+                    'clean_auc': clean_auc,
+                    'dist': l2_dist,
+                    'dist_relative': (1 if step == 0 else l2_dist/(step * args.step_size)),
+                    'rt': rt,
+                    'rt0': rt0,
+                    'step': step
+                }, step=global_step)
 
             # Save a checkpoint every 200 iterations or at the end of epoch
             if i % 200 == 199 or i == len(indist_loader) - 1:
@@ -351,3 +415,5 @@ for step in range(args.startstep, args.max_steps + 1):
 
         if step_interrupt:
             break  # break the epoch loop
+
+wandb.finish()
