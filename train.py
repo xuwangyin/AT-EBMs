@@ -155,7 +155,7 @@ def log_fid():
                       step_size=args.generation_step_size,
                       outdist_datadir=args.outdist_datadir)
     print(f'fid: {fid}')
-    wandb.log({'fid': fid, 'global_step': global_step})
+    wandb.log({'fid': fid}, step=global_step)
     return fid
 
 
