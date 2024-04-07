@@ -1,9 +1,6 @@
 [submodule "starganv2"]
 	path = starganv2
-	url = git@github.com:xuwangyin/stargan-v2.git
-[submodule "pytorch_fid"]
-	path = pytorch_fid
-	url = https://github.com/mseitzer/pytorch-fid.git
+	url = https://github.com/xuwangyin/stargan-v2.git
 [submodule "pytorch-fid"]
 	path = pytorch-fid
 	url = https://github.com/mseitzer/pytorch-fid.git
@@ -15,4 +12,4 @@
 	url = https://gitlab.com/Bitterwolf/GOOD.git
 [submodule "auto-attack"]
 	path = auto-attack
-	url = git@github.com:xuwangyin/auto-attack.git
+	url = https://github.com/xuwangyin/auto-attack.git
