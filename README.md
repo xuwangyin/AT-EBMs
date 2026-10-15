@@ -15,7 +15,7 @@ tensorboard
 tqdm
 ```
 
-In addition to installing the required Python dependencies, download the `checkpoints/`, `data/`, and `experiments/` directories from [this Google Drive link](https://drive.google.com/drive/folders/1Jp51XECIPckUkaNBZj1rQqpxLoIXzBVZ?usp=sharing). Place these directories at the root of the project.
+In addition to installing the required Python dependencies, download the `checkpoints/`, `data/`, and `experiments/` directories from [this Google Drive link](https://drive.google.com/drive/folders/0B2rTBcmS30yifjJranRFakdZcGNrXzR0S29WRUZlTlhWWTVSVkhYNTd5MHJtZkg1NDcxN0k?resourcekey=0-XtNmgV9EBDvZamJ21jO_hQ). Place these directories at the root of the project.
 
 ## Preparing Datasets
 By default, datasets are organized in the `./datasets` directory:
